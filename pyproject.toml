@@ -1,0 +1,45 @@
+[project]
+name = "wakeword"
+version = "0.1.0"
+description = "Alexa microWakeWord model for Home Assistant Voice PE, and the harness that trains it"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "microwakeword",
+    "tensorflow==2.21.0 ; sys_platform != 'linux' or platform_machine != 'x86_64'",
+    "tensorflow[and-cuda]==2.21.0 ; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "ai-edge-litert>=2.3.0",
+    # microwakeword writes tf.summary scalars; tensorflow 2.21 no longer pulls tensorboard in
+    "tensorboard>=2.20",
+    "piper-tts==1.8.0",
+    "onnxruntime>=1.20",
+    "numba>=0.68",
+    "audiomentations>=0.43.1",
+    "pymicro-features>=2.0.2",
+    "mmap-ninja>=0.9.0",
+    "numpy>=2",
+    "soundfile>=0.13",
+    "soxr>=0.5",
+    "pyarrow>=18",
+    "pyyaml>=6",
+    "huggingface-hub>=0.30",
+]
+
+[project.scripts]
+wakeword = "wakeword.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+# editable on purpose: upstream setup.py omits the audio/ and layers/ subpackages from built wheels
+microwakeword = { path = "third_party/microWakeWord", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

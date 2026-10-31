@@ -1,0 +1,1 @@
+"""microwakeword training harness."""

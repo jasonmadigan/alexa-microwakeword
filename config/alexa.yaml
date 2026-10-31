@@ -1,0 +1,149 @@
+# "alexa" model for home assistant voice pe (esphome micro_wake_word)
+name: alexa
+wake_word: Alexa
+seed: 20261031
+# parallel processes for synthesis, features and evaluation; WAKEWORD_WORKERS overrides
+workers: 24
+
+pins:
+  piper_voices: {repo: rhasspy/piper-voices, revision: b4e358ffcb232591bf73a540e70f7de528e4174a}
+  negatives: {repo: kahrendt/microwakeword, revision: 0da95f94302ca2f4aae3b18fc6560fa6d2bba3d1}
+  rirs: {repo: davidscripka/MIT_environmental_impulse_responses, revision: b824a1ef2821f112fda0b9cb26e4278c62b425bb}
+  fma: {repo: mchl914/fma_xsmall, revision: bfef24fd1e1334e4631b917c98e0dbc3dd653ab2}
+  audioset: {repo: agkphysics/AudioSet, revision: 0c609e8302cf139307f639c57652032af0a88041}
+  # the model currently deployed on the voice pes
+  esphome_models: {repo: esphome/micro-wake-word-models, revision: 05b65922cc433c9df13e98e32a7fe520758c837e}
+
+fetch:
+  # precomputed microwakeword spectrogram sets (cc-by-nc-4.0), name -> sha256 of the zip
+  negatives:
+    speech: 68b6b811b347b8321169f9e75ea2b9be73245943b4470af9532ca288d9f1b3cc
+    dinner_party: 18a0885d595ced7faa73736a8680206f5ba6e80113ca3e6ce43130e510aac18f
+    no_speech: 722dbcc967275c64c9581ecb85729549830a9094ce605ee22b2ddab9dbabf3c8
+    dinner_party_eval: e08e23a5e654dd4415a1c41a4b6cd02d1f983c821512367ad937bac1aeed8299
+  # audioset balanced-train shards used as background noise, ~700 MB each
+  audioset_shards: [data/bal_train/09.parquet, data/bal_train/21.parquet]
+  baselines:
+    alexa: {tflite: 9011a8155b04de858c48038529235cbc0e42e9fca05a55bf588cb80a653a723b, json: 1d999798b35b1fe2606465b75ab840be51c1811d2909d5e620cefb6e96f8abd0}
+    vad: {tflite: 7aa4db6d5fb7c5358609f6931e7847d303c16a43d178638bc14104f50d7eff5f, json: bd8c9cd4350814f761e651685ae5196e2a56521aaf5670071ba742927de58ed7}
+
+voices: config/voices.yaml
+
+phrases:
+  positive:
+    text: ["Alexa", "Alexa.", "Alexa!", "Alexa?", "Alexa,"]
+    # pronunciation variants fed to piper as phonemes, covering reduced, open and
+    # rp-style vowels so accents are not limited to espeak's default reading
+    ipa: ["əlˈɛksə", "ɐlˈɛksə", "alˈɛksə", "ælˈɛksə", "ɐlˈɛksɐ", "ɑːlˈɛksə"]
+    ipa_fraction: 0.35
+  # confusable phrases used as hard negatives
+  negative:
+    text: ["Alexis", "Alex", "Alexander", "Alexandra", "a Lexus", "Lexi", "Lexa", "Electra", "election", "excel", "Alaska", "Alicia", "Melissa", "Alec's car", "relax a bit", "unless a", "Alexia"]
+
+synthesis:
+  length_scale: [0.75, 1.4]
+  noise_scale: [0.45, 0.95]
+  noise_w_scale: [0.5, 1.0]
+  # trim leading and trailing audio quieter than the clip peak minus this
+  trim_db: 40
+
+plan:
+  clips:
+    positive: {training: 50000, validation: 4000, testing: 8000}
+    negative: {training: 20000, validation: 2000, testing: 4000}
+  # relative weight of each (gender, region) cell; quotas are filled evenly
+  # across a cell's speakers, capped per speaker, spare capacity redistributed
+  gender_weights: {female: 1.0, male: 1.0}
+  region_weights:
+    ireland: 1.0
+    scotland: 1.0
+    england_wales: 1.0
+    north_america: 1.0
+    oceania_south_africa: 1.0
+    south_asia: 1.0
+    other_l2: 1.0
+  max_clips_per_speaker: 500
+  # fraction of each cell's speakers held out (whole speakers, never clips)
+  held_out: {validation: 0.1, testing: 0.1}
+
+augmentation:
+  duration_s: 3.2
+  probabilities: {SevenBandParametricEQ: 0.1, TanhDistortion: 0.1, PitchShift: 0.1, BandStopFilter: 0.1, AddColorNoise: 0.1, AddBackgroundNoise: 0.75, Gain: 1.0, RIR: 0.5}
+  background_min_snr_db: -5
+  background_max_snr_db: 10
+  min_jitter_s: 0.195
+  max_jitter_s: 0.205
+
+features:
+  # one augmentation per clip: more distinct clips beat re-augmenting the same ones,
+  # and 30k steps of batch 128 only draw ~270k positives anyway
+  repeat: {training: 1, validation: 1, testing: 1}
+  # streaming simulation during non-streaming training (microwakeword notebook values)
+  slide_frames: {training: 10, validation: 10, testing: 1}
+
+training:
+  steps: [20000, 10000]
+  learning_rates: [0.001, 0.0002]
+  positive_class_weight: [1, 1]
+  negative_class_weight: [20, 20]
+  batch_size: 128
+  time_mask_max_size: [0, 0]
+  time_mask_count: [0, 0]
+  freq_mask_max_size: [0, 0]
+  freq_mask_count: [0, 0]
+  eval_step_interval: 500
+  clip_duration_ms: 1500
+  target_minimization: 0.9
+  minimization_metric: null
+  maximization_metric: average_viable_recall
+  feature_sets:
+    positive: {sampling_weight: 2.0, penalty_weight: 1.0, truncation_strategy: truncate_start}
+    hard_negative: {sampling_weight: 1.0, penalty_weight: 1.0, truncation_strategy: truncate_start}
+    speech: {sampling_weight: 10.0, penalty_weight: 1.0, truncation_strategy: random}
+    dinner_party: {sampling_weight: 10.0, penalty_weight: 1.0, truncation_strategy: random}
+    no_speech: {sampling_weight: 5.0, penalty_weight: 1.0, truncation_strategy: random}
+    dinner_party_eval: {sampling_weight: 0.0, penalty_weight: 1.0, truncation_strategy: split}
+
+# same shape as the deployed alexa v2 model (read from its tflite), so it fits
+# the same tensor arena and runs in real time on the voice pe
+model:
+  architecture: mixednet
+  args:
+    pointwise_filters: "64,64,64,64"
+    repeat_in_block: "1,1,1,1"
+    mixconv_kernel_sizes: "[5],[9],[13],[21]"
+    residual_connection: "0,0,0,0"
+    first_conv_filters: 32
+    first_conv_kernel_size: 5
+    stride: 3
+
+evaluation:
+  # operating point: best worst-group recall with ambient false accepts/hour at or under
+  # target_faph and confusable-phrase accept rate at or under max_confusable_accept.
+  # the deployed model at the devices' 0.97 / 7 accepts 24.1 % of confusable clips
+  target_faph: 0.5
+  max_confusable_accept: 0.241
+  min_group_recall: 0.9
+  cutoffs: {start: 0.5, stop: 0.99, step: 0.01}
+  windows: [3, 4, 5, 6, 7, 8, 10]
+  # gate detections on the vad model, as the voice pe firmware does
+  vad_gate: true
+  ambient_sets: [dinner_party_eval]
+  preroll_s: 1.5
+  postroll_s: 1.0
+  conditions:
+    clean: {gain_db: [-12, 0]}
+    far_field: {gain_db: [-18, -3], rir: true, background_snr_db: [3, 15]}
+  baselines:
+    - {name: deployed, model: alexa, probability_cutoff: 0.97, sliding_window_size: 7}
+    - {name: shipped_default, model: alexa, probability_cutoff: 0.9, sliding_window_size: 5}
+
+export:
+  author: jasonmadigan
+  website: https://github.com/jasonmadigan/alexa-microwakeword
+  trained_languages: [en]
+  # scripts/arena.py (tflite-micro): this architecture needs 22954 bytes; the deployed
+  # alexa needs 20732 and declares 22348, vad 13571 vs 16772. 30000 leaves more margin
+  # than either for esp-nn scratch buffers.
+  tensor_arena_size: 30000
+  minimum_esphome_version: "2024.7.0"

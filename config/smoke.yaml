@@ -1,0 +1,37 @@
+# end-to-end pipeline check with tiny volumes; proves wiring, not model quality
+base: alexa.yaml
+name: smoke
+workers: 8
+
+fetch:
+  negatives:
+    speech: null
+    dinner_party: null
+    no_speech: null
+  audioset_shards: []
+
+plan:
+  clips:
+    positive: {training: 600, validation: 120, testing: 240}
+    negative: {training: 200, validation: 60, testing: 120}
+  max_clips_per_speaker: 20
+
+training:
+  steps: [300]
+  learning_rates: [0.001]
+  positive_class_weight: [1]
+  negative_class_weight: [20]
+  time_mask_max_size: [0]
+  time_mask_count: [0]
+  freq_mask_max_size: [0]
+  freq_mask_count: [0]
+  eval_step_interval: 100
+  feature_sets:
+    speech: null
+    dinner_party: null
+    no_speech: null
+
+evaluation:
+  windows: [5, 7]
+  # a 300-step model is not expected to hit the real target; still exercise export
+  target_faph: 1000

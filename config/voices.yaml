@@ -1,0 +1,187 @@
+# piper voices used for synthesis, with gender and accent per speaker.
+# labels come from each corpus's own documentation (see `source`). voices whose
+# speaker gender or accent is undocumented (amy, danny, joe, mike, kusal, sam,
+# reza_ibrahim) are left out rather than guessed.
+
+# accent -> region. reports and the sampling plan balance over (gender, region).
+regions:
+  irish: ireland
+  northern_irish: ireland
+  scottish: scotland
+  english: england_wales
+  british: england_wales
+  welsh: england_wales
+  american: north_america
+  canadian: north_america
+  us_librivox: north_america
+  australian: oceania_south_africa
+  new_zealand: oceania_south_africa
+  south_african: oceania_south_africa
+  indian: south_asia
+  hindi_l1: south_asia
+  arabic_l1: other_l2
+  mandarin_l1: other_l2
+  korean_l1: other_l2
+  spanish_l1: other_l2
+  vietnamese_l1: other_l2
+  german_l1: other_l2
+  hebrew_l1: other_l2
+
+voices:
+  en_GB-vctk-medium:
+    source: https://datashare.ed.ac.uk/handle/10283/3443
+    speakers_from: vctk
+    vctk_accents:
+      English: english
+      British: british
+      Scottish: scottish
+      Irish: irish
+      NorthernIrish: northern_irish
+      Welsh: welsh
+      American: american
+      Canadian: canadian
+      SouthAfrican: south_african
+      Australian: australian
+      NewZealand: new_zealand
+      Indian: indian
+
+  en_US-libritts_r-medium:
+    source: https://www.openslr.org/141/
+    speakers_from: librispeech
+    # librivox readers, mostly north american, accent not labelled
+    accent: us_librivox
+
+  en_US-l2arctic-medium:
+    source: https://psi.engr.tamu.edu/l2-arctic-corpus/
+    speakers:
+      ABA: [male, arabic_l1]
+      SKA: [female, arabic_l1]
+      YBAA: [male, arabic_l1]
+      ZHAA: [female, arabic_l1]
+      BWC: [male, mandarin_l1]
+      LXC: [female, mandarin_l1]
+      NCC: [female, mandarin_l1]
+      TXHC: [male, mandarin_l1]
+      ASI: [male, hindi_l1]
+      RRBI: [male, hindi_l1]
+      SVBI: [female, hindi_l1]
+      TNI: [female, hindi_l1]
+      HJK: [female, korean_l1]
+      HKK: [male, korean_l1]
+      YDCK: [female, korean_l1]
+      YKWK: [male, korean_l1]
+      EBVS: [male, spanish_l1]
+      ERMS: [male, spanish_l1]
+      MBMPS: [female, spanish_l1]
+      NJS: [female, spanish_l1]
+      HQTV: [male, vietnamese_l1]
+      PNV: [female, vietnamese_l1]
+      THV: [female, vietnamese_l1]
+      TLV: [male, vietnamese_l1]
+
+  en_US-arctic-medium:
+    source: http://www.festvox.org/cmu_arctic/
+    speakers:
+      bdl: [male, american]
+      slt: [female, american]
+      clb: [female, american]
+      rms: [male, american]
+      jmk: [male, canadian]
+      awb: [male, scottish]
+      ksp: [male, indian]
+      aew: [male, american]
+      ahw: [male, german_l1]
+      aup: [male, indian]
+      axb: [female, indian]
+      eey: [female, american]
+      fem: [male, german_l1]
+      gka: [male, indian]
+      ljm: [female, american]
+      lnh: [female, american]
+      rxr: [male, hebrew_l1]
+      slp: [male, indian]
+
+  en_GB-aru-medium:
+    # six female, six male; near-rp accents, schooled in england or wales
+    source: https://datacat.liverpool.ac.uk/681/
+    speakers:
+      "01": [male, english]
+      "02": [male, welsh]
+      "03": [female, english]
+      "04": [female, english]
+      "05": [male, welsh]
+      "06": [male, english]
+      "07": [female, english]
+      "08": [female, english]
+      "09": [female, english]
+      "10": [male, english]
+      "11": [female, english]
+      "12": [male, english]
+
+  en_GB-semaine-medium:
+    source: https://github.com/marytts/dfki-semaine-data
+    speakers:
+      prudence: [female, english]
+      poppy: [female, english]
+      spike: [male, english]
+      obadiah: [male, english]
+
+  en_GB-jenny_dioco-medium:
+    source: https://github.com/dioco-group/jenny-tts-dataset
+    speaker: [female, irish]
+
+  en_GB-alba-medium:
+    source: https://datashare.ed.ac.uk/handle/10283/3270
+    speaker: [female, scottish]
+
+  en_GB-cori-high:
+    source: https://brycebeattie.com/files/tts/
+    speaker: [female, english]
+
+  en_GB-alan-medium:
+    source: https://github.com/MycroftAI/mimic3-voices/tree/master/voices/en_UK/apope_low
+    speaker: [male, english]
+
+  en_GB-northern_english_male-medium:
+    source: https://www.openslr.org/83/
+    speaker: [male, english]
+
+  en_GB-southern_english_female-low:
+    source: https://www.openslr.org/83/
+    speaker: [female, english]
+
+  en_US-kathleen-low:
+    source: https://github.com/rhasspy/dataset-voice-kathleen
+    speaker: [female, american]
+
+  en_US-kristin-medium:
+    source: https://brycebeattie.com/files/tts/
+    speaker: [female, american]
+
+  en_US-ljspeech-high:
+    source: https://keithito.com/LJ-Speech-Dataset/
+    speaker: [female, american]
+
+  en_US-hfc_female-medium:
+    source: https://ast-astrec.nict.go.jp/en/release/hi-fi-captain/
+    speaker: [female, american]
+
+  en_US-hfc_male-medium:
+    source: https://ast-astrec.nict.go.jp/en/release/hi-fi-captain/
+    speaker: [male, american]
+
+  en_US-bryce-medium:
+    source: https://brycebeattie.com/files/tts/
+    speaker: [male, american]
+
+  en_US-john-medium:
+    source: https://brycebeattie.com/files/tts/
+    speaker: [male, american]
+
+  en_US-norman-medium:
+    source: https://brycebeattie.com/files/tts/
+    speaker: [male, american]
+
+  en_US-ryan-high:
+    source: https://www.kaggle.com/datasets/roholazandie/ryanspeech
+    speaker: [male, american]

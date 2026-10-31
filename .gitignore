@@ -1,0 +1,15 @@
+# local data: downloads, generated audio, features, runs, household recordings
+/data/
+/dist/
+/runs/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# os
+.DS_Store
